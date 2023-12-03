@@ -5,6 +5,7 @@ import org.w3c.dom.ls.LSOutput;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.*;
 
 
@@ -126,7 +127,7 @@ public class Main {
     }
 
     //    Number of matches played per year of all the years in IPL.
-    public static void numberOfMatches(List<Match> matches) {
+    public static HashMap<String, Integer> numberOfMatches(List<Match> matches) {
         HashMap<String, Integer> totalMatchesInYear = new HashMap<>();
         for (Match match : matches) {
             String season = match.getSeason();
@@ -137,10 +138,11 @@ public class Main {
                 totalMatchesInYear.put(season, 1);
             }
         }
-        System.out.println(totalMatchesInYear);
+        System.out.println("1.Number of matches played per year of all the years in IPL: " + totalMatchesInYear);
+        return totalMatchesInYear;
     }
 
-    public static void MatchesWonPerTeamPerYear(List<Match> matches) {
+    public static HashMap<String,HashMap<String,Integer>> MatchesWonPerTeamPerYear(List<Match> matches) {
         HashMap<String, HashMap<String, Integer>> totalMatchesWonPerYear = new HashMap<>();
 
         for (Match match : matches) {
@@ -162,11 +164,12 @@ public class Main {
                 totalMatchesWonPerYear.put(season, teamsWins);
             }
         }
-        System.out.println(totalMatchesWonPerYear);
+        System.out.println("2.Number of matches won of all teams over all the years of IPL: " + totalMatchesWonPerYear);
+        return totalMatchesWonPerYear;
     }
 
     //    extra run conceded per team in the year 2016
-    public static void extraRunscoredByTeamsIn2016(List<Match> matches, List<Delivery> deliveries) {
+    public static  LinkedHashMap<String, Integer> extraRunscoredByTeamsIn2016(List<Match> matches, List<Delivery> deliveries) {
         List<String> matchId2016 = new ArrayList<>();
 
         for (Match match : matches) {
@@ -193,10 +196,13 @@ public class Main {
         }
 
         // Print the sorted extraRunsByTeam
-        System.out.println(sortedExtraRunsByTeam);
+        System.out.println("3.For the year 2016 get the extra runs conceded per team: " + sortedExtraRunsByTeam);
+        return sortedExtraRunsByTeam;
+
     }
 
-    public static void findTop10EconomicalBowlers(List<Match> matches, List<Delivery> deliveries) {
+
+    public static LinkedHashMap<String,Double> findTop10EconomicalBowlers(List<Match> matches, List<Delivery> deliveries) {
         HashMap<String, Integer> totalRunsByBowlers = new HashMap<>();
         HashMap<String, Integer> totalDeliveriesByBowlers = new HashMap<>();
         HashMap<String, Double> economyByBowlers = new HashMap<>();
@@ -220,16 +226,72 @@ public class Main {
         }
         List<Map.Entry<String, Double>> entryList = new ArrayList<>(economyByBowlers.entrySet());
         entryList.sort(Map.Entry.comparingByValue());
-        Map<String, Double> sortedMap = new LinkedHashMap<>();
+
+        LinkedHashMap<String, Double> sortedMap = new LinkedHashMap<>();
         for(Map.Entry<String, Double> entry : entryList){
             sortedMap.put(entry.getKey(), entry.getValue());
         }
-        System.out.println("Top economical bowlers in 2015 ");
-        System.out.println(sortedMap);
+        System.out.println("4.For the year 2015 get the top economical bowlers: " + sortedMap);
+        return sortedMap;
     }
 
 
+    //5th question
+    public static HashMap<String, Integer> teamWonTossAndMatches(List<Match> matches) {
+        HashMap<String, Integer> teamWonBothTossAndMatch = new HashMap<>();
+      try{
+          for (Match match : matches) {
+              String winner = match.getWinner();
+              if(match.getToss_winner().equals(match.getWinner())){
+                  if(teamWonBothTossAndMatch.containsKey(winner)){
+                      teamWonBothTossAndMatch.put(winner, teamWonBothTossAndMatch.get(winner)+1);
+                  }
+                  else{
+                      teamWonBothTossAndMatch.put(winner, 1);
+                  }
+              }
+          }
+      }
+      catch(Exception e){
+          System.out.println(e.getMessage());
+      }
 
+        System.out.println("5.Number of times each team won the toss and won the match: " + teamWonBothTossAndMatch);
+      return teamWonBothTossAndMatch;
+    }
+
+
+    public static void computeBowlerWithMaxWickets(List<Match> matches, List<Delivery> deliveries) {
+        List<String> matchIds = new ArrayList<>();
+
+        for(Match match: matches) {
+            System.out.println(match.getVenue());
+            if(match.getSeason().equals("2017") && match.getVenue().equals("\"Rajiv Gandhi International Stadium")) {
+                matchIds.add(match.getId());
+            }
+        }
+        System.out.println(matchIds);
+        Map<String, Integer> bowler = new HashMap<>();
+
+        for(Delivery delivery:deliveries) {
+            if(matchIds.contains(delivery.getMatch_id())) {
+                Integer wicket = bowler.getOrDefault(delivery.getBowler(), 0);
+                if(delivery.getDismissed_kind() != null && delivery.getDismissed_kind().equals("run out")) {
+                    wicket +=1;
+                }
+                bowler.put(delivery.getBowler(), wicket);
+            }
+        }
+        String bowlerWithMaxWicket = "";
+        Integer currentWicket = 0;
+        for(String bowlerName: bowler.keySet()) {
+            if(bowler.get(bowlerName) > currentWicket) {
+                currentWicket = bowler.get(bowlerName);
+                bowlerWithMaxWicket = bowlerName;
+            }
+        }
+        System.out.println(bowlerWithMaxWicket);
+    }
     public static void main(String[] args) throws IOException{
 
         List<Match> matches = getMatchesData();
@@ -238,6 +300,8 @@ public class Main {
         MatchesWonPerTeamPerYear(matches);
         extraRunscoredByTeamsIn2016(matches,deliveries);
         findTop10EconomicalBowlers(matches,deliveries);
+        teamWonTossAndMatches(matches);
+//        computeBowlerWithMaxWickets(matches, deliveries);
     }
 
 
